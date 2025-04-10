@@ -4,7 +4,7 @@
 
 🚀 已实现远程定位追踪 | 📡 MQTT通信 | 🌍 坐标转换 | 💻 上位机控制
 
-上位机采用Arduino C++ | 服务端使用NodeJS 20.14.022 | 使用MQTT协议进行通讯
+上位机采用Arduino C++ | 服务端使用NodeJS 20.14环境 | 使用MQTT协议进行通讯
 
 硬件PCB设计已开源到立创开源社区 [48V电动车定位器 - 立创开源硬件平台](https://oshwhub.com/hewei2723/4ggnss)
 

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>4G GNSS控制台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=PUDWWdUAw3nzFO8ollcqsFxwpHxRHhVO"></script>
+    <!-- 百度api前端要求指定的域名才能访问，所以这里放心使用，不会被盗用 -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html" target="_blank">控制台</a>
+            <a href="alert-center.html" target="_blank">报警中心</a>
+            <a href="data-analysis.html" target="_blank">数据分析</a>
+            <a href="device-management.html" target="_blank">设备管理</a>
+            <a href="data-dashboard.html" target="_blank">数据看板</a>
+            <a href="firmware-upgrade.html" target="_blank">固件升级</a>
+            <a href="geo-fence.html" target="_blank">电子围栏</a>
+            <a href="alert-center.html" target="_blank">报警中心</a>
+            <a href="sim-management.html" target="_blank">SIM管理</a>
+            <a href="system-monitor.html" target="_blank">系统监控</a>
+            <a href="history-replay.html" target="_blank">历史回放</a>
+            <a href="log-audit.html" target="_blank">日志审计</a>
+            <a href="realtime-comms.html" target="_blank">实时通讯</a>
+            <a href="satellite-status.html" target="_blank">卫星状态</a>
+            <a href="user-management.html" target="_blank">用户管理</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel">
+                <h3>地图</h3>
+                <div id="map"></div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="panel">
+                <div class="panel1">
+                    <h3>位置信息</h3>
+                    <div id="location-info"></div>
+                </div>
+                <h3>命令控制台</h3>
+                <div class="command-panel">
+                    <input type="text" id="command" placeholder="输入AT命令">
+                    <button onclick="sendCommand()">发送</button>
+                </div>
+                <div class="quick-commands">
+                    <button onclick="quickCommand('ATI')">查询设备信息</button>
+                    <button onclick="quickCommand('AT+CSQ')">查询信号强度</button>
+                    <button onclick="quickCommand('AT+MPING=mqtt.lttac.cn1')">PING地址</button>
+                    <button onclick="quickCommand('AT+MCONFIG')">MQTT客户端</button>
+                    <button onclick="quickCommand('AT+MIPSTART.')">MQTT服务器</button>
+                    <button onclick="quickCommand('AT+MCONNECT')">连接MQTT</button>
+                    <button onclick="quickCommand('AT+MPUB')">发布消息</button>
+                    <button onclick="quickCommand('AT+MPUBEX')">发布长消息</button>
+                    <button onclick="quickCommand('AT+MSUB')">订阅主题</button>
+                    <button onclick="quickCommand('AT+MGPSC')">GPS开关</button>
+                    <button onclick="quickCommand('AT+MGPSGET=0')">NMEA数据</button>
+                    <button onclick="quickCommand('AT+GPSST')">定位信息</button>
+                    <button onclick="quickCommand('AT+AGNSSGET')">AGNSS下载</button>
+                    <button onclick="quickCommand('AT+AGNSSSET')">AGNSS应用</button>
+                </div>
+            </div>
+            <div class="panel">
+                <h3>命令响应</h3>
+                <div id="command-result"></div>
+            </div>
+        </div>
+    </div>
+    <script src="console.js"></script>
+</body>
+</html>

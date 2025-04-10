@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>卫星状态 - 4G GNSS控制台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="data-analysis.html">数据分析</a>
+            <a href="device-management.html">设备管理</a>
+            <a href="data-dashboard.html">数据看板</a>
+            <a href="firmware-upgrade.html">固件升级</a>
+            <a href="geo-fence.html">电子围栏</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="sim-management.html">SIM管理</a>
+            <a href="system-monitor.html">系统监控</a>
+            <a href="history-replay.html">历史回放</a>
+            <a href="log-audit.html">日志审计</a>
+            <a href="realtime-comms.html">实时通讯</a>
+            <a href="satellite-status.html">卫星状态</a>
+            <a href="user-management.html">用户管理</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="container">
+        <div class="full-width-panel">
+            <h3>卫星信号状态</h3>
+            <div class="satellite-grid">
+                <div class="signal-meter">
+                    <h4>信号强度</h4>
+                    <div class="gauge-chart" id="signal-gauge"></div>
+                </div>
+                <div class="sky-map">
+                    <h4>卫星分布图</h4>
+                    <div class="radar-chart" id="satellite-radar"></div>
+                </div>
+            </div>
+            
+            <div class="satellite-list">
+                <h4>可见卫星列表</h4>
+                <table class="satellite-table">
+                    <thead>
+                        <tr>
+                            <th>卫星ID</th>
+                            <th>仰角</th>
+                            <th>方位角</th>
+                            <th>信噪比</th>
+                        </tr>
+                    </thead>
+                    <tbody id="satellite-data">
+                        <!-- 动态加载卫星数据 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="console.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            initGaugeChart('#signal-gauge');
+            initRadarChart('#satellite-radar');
+        });
+    </script>
+</body>
+</html>

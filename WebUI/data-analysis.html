@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>数据分析 - 4G GNSS控制台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="data-analysis.html">数据分析</a>
+            <a href="device-management.html">设备管理</a>
+            <a href="data-dashboard.html">数据看板</a>
+            <a href="firmware-upgrade.html">固件升级</a>
+            <a href="geo-fence.html">电子围栏</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="sim-management.html">SIM管理</a>
+            <a href="system-monitor.html">系统监控</a>
+            <a href="history-replay.html">历史回放</a>
+            <a href="log-audit.html">日志审计</a>
+            <a href="realtime-comms.html">实时通讯</a>
+            <a href="satellite-status.html">卫星状态</a>
+            <a href="user-management.html">用户管理</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-row">
+            <div class="dashboard-item">
+                <h4>定位数据统计</h4>
+                <div class="info-grid">
+                    <div>今日定位次数</div>
+                    <div>1,234次</div>
+                    <div>平均精度</div>
+                    <div>2.5米</div>
+                </div>
+            </div>
+            <div class="dashboard-item">
+                <h4>网络状态监测</h4>
+                <div class="info-grid">
+                    <div>4G信号强度</div>
+                    <div>-85dBm</div>
+                    <div>数据流量</div>
+                    <div>256MB</div>
+                </div>
+            </div>
+        </div>
+        <div class="full-width-panel">
+            <h3>设备状态趋势分析</h3>
+            <div class="chart-container" id="signal-chart"></div>
+            
+            <div class="data-grid">
+                <div class="grid-item">
+                    <h4>在线设备分布</h4>
+                    <div class="pie-chart" id="online-distribution"></div>
+                </div>
+                <div class="grid-item">
+                    <h4>通信成功率</h4>
+                    <div class="gauge-chart" id="success-rate"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="console.js"></script>
+    <script>
+        // 初始化图表逻辑
+        window.addEventListener('load', function() {
+            initLineChart('#signal-chart');
+            initPieChart('#online-distribution');
+            initGaugeChart('#success-rate');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+信息均要储存在数据库
+数据库地址 sh.cn.lttac.cn 账户 gnss 密码 TxwsOnly1 库名 gnss
+mqtt服务器信息 地址mqtt.lttac.cn 端口1883 用户名 ha 密码 TxwsOnly1
+总共三个Mqtt订阅主题
+1. AT_GPS 定位模块订阅的主题，作用是接收负端的命令并执行，由服务端发出 json格式，包含cilent_id和at_cmd两个参数,
+    只有客户端id对应上了才会执行at_cmd指令
+    例如发送ATI命令，客户端id为4G_GPS，那么json数据格式如下
+    {
+  "client_id":"4G_GPS",
+  "at_cmd":"ATI"
+  }
+  例如发送AT+GPSST
+    {
+  "client_id":"4G_GPS",
+  "at_cmd":"AT+GPSST"
+  }
+
+
+2. AT_GPS_result 当定位模块收到AT_GPS主题at_cmd命令并执行后，会通过这条主题将结果返回给服务端，
+    服务端收到后会将结果返回给客户端，收到的命令格式是这样的，也是一个json数据，因为不同命令的执行结果不一样
+    模块执行命令后会一行一行打印出来，所以json干脆直接按行分类了，最后一条是OK表示执行成功，最多有10行
+    {
+  "status": true,
+  "line1": "",
+  "line2": "ATI",
+  "line3": "Manufacturer:\"LYNQ\"",
+  "line4": "Model:\"LYNQ_L511CN_2C\"",
+  "line5": "Revision:L511CN_2Cv02.01b06.00",
+  "line6": "IMEI: 861337070933183",
+  "line7": "",
+  "line8": "OK",
+  "line9": ""
+}
+
+
+3. 4G 这个是定位模块发出的主题，里面包含了一个json格式的数据，
+分为成功和失败两种情况，成功会包含经纬度信息，失败只会显示null
+
+这是返回的信息格式：
+成功的情况：
+{
+  "status": 1,
+  "cn": 1,
+  "wgs84": {
+    "longitude": 113.89,
+    "latitude": 35.21,
+    "altitude": 76.56
+  }
+}
+
+失败返回的信息：
+null
+
+注意：服务端在接收到 wgs84 坐标后，会自动转换为 bd09 坐标并添加到数据中，最终发送给前端的完整数据格式为：
+{
+  "status": 1,
+  "cn": 1,
+  "wgs84": {
+    "longitude": 113.89,
+    "latitude": 35.21,
+    "altitude": 76.56
+  },
+  "bd09": {
+    "longitude": 113.896418,
+    "latitude": 35.216299
+  }
+}

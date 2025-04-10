@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>固件升级中心</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="firmware-upgrade.html">固件升级</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="full-panel">
+            <h3>固件版本管理</h3>
+            <div class="firmware-list">
+                <div class="firmware-item">
+                    <span>V2.1.8（当前版本）</span>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="firmware-item highlight">
+                    <span>V2.2.0（最新版本）</span>
+                    <button class="upgrade-btn" onclick="startUpgrade()">立即升级</button>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 65%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="release-notes">
+                <h4>版本更新说明：</h4>
+                <ul>
+                    <li>优化GPS定位算法精度</li>
+                    <li>新增MQTT断线重连机制</li>
+                    <li>修复已知内存泄漏问题</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="web.js"></script>
+</body>
+</html>

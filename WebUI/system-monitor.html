@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>系统监控</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="system-monitor.html">系统监控</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="full-panel">
+            <div class="monitor-grid">
+                <div class="gauge-item">
+                    <h4>CPU使用率</h4>
+                    <div id="cpu-gauge" style="height:200px"></div>
+                </div>
+                <div class="gauge-item">
+                    <h4>内存占用</h4>
+                    <div id="mem-gauge" style="height:200px"></div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h4>资源趋势（最近24小时）</h4>
+                <div id="resource-chart" style="height:300px"></div>
+            </div>
+
+            <div class="status-cards">
+                <div class="status-card">
+                    <h5>网络状态</h5>
+                    <div class="status-value online">在线</div>
+                    <div class="status-detail">延迟：35ms</div>
+                </div>
+                <div class="status-card">
+                    <h5>存储状态</h5>
+                    <div class="status-value">256GB/512GB</div>
+                    <div class="status-detail">剩余：50%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 模拟仪表盘数据
+        function createGauge(dom, title, value) {
+            var chart = echarts.init(dom);
+            chart.setOption({
+                series: [{
+                    type: 'gauge',
+                    progress: { show: true },
+                    detail: { valueAnimation: true, formatter: '{value}%' },
+                    data: [{ value: value }]
+                }]
+            });
+        }
+        
+        createGauge(document.getElementById('cpu-gauge'), 'CPU', 75);
+        createGauge(document.getElementById('mem-gauge'), 'Memory', 60);
+
+        // 资源趋势图
+        var resourceChart = echarts.init(document.getElementById('resource-chart'));
+        resourceChart.setOption({
+            xAxis: { type: 'category', data: Array.from({length:24},(_,i)=>i+'时') },
+            yAxis: { type: 'value' },
+            series: [
+                { name: 'CPU', type: 'line', smooth: true, data: [65,70,68,75,72,80,78,85,82,88,90,92,95,93,90,85,80,75,70,65,60,55,50,45] },
+                { name: '内存', type: 'line', smooth: true, data: [55,58,60,62,65,63,60,58,55,53,50,52,55,58,60,62,65,68,70,72,75,73,70,68] }
+            ]
+        });
+    </script>
+    <script src="web.js"></script>
+</body>
+</html>

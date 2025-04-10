@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>电子围栏配置</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=1.0&type=webgl&ak=PUDWWdUAw3nzFO8ollcqsFxwpHxRHhVO"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="geo-fence.html">电子围栏</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="left-panel">
+            <div class="panel">
+                <h3>地图绘制</h3>
+                <div id="fence-map" style="height:400px"></div>
+                <div class="draw-tools">
+                    <button onclick="startDrawing('polygon')">绘制多边形</button>
+                    <button onclick="clearOverlays()">清除图形</button>
+                </div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="panel">
+                <h3>围栏规则</h3>
+                <div class="fence-list">
+                    <div class="fence-item">
+                        <span>厂区安全区域</span>
+                        <div class="fence-status active">生效中</div>
+                    </div>
+                    <div class="fence-item">
+                        <span>运输禁入区域</span>
+                        <div class="fence-status inactive">未启用</div>
+                    </div>
+                </div>
+                <div class="rule-settings">
+                    <select>
+                        <option>进出报警</option>
+                        <option>停留超时</option>
+                    </select>
+                    <input type="number" placeholder="超时阈值(分钟)">
+                    <button>保存规则</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="web.js"></script>
+</body>
+</html>

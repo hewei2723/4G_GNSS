@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>设备管理 - 4G GNSS控制台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="data-analysis.html">数据分析</a>
+            <a href="device-management.html">设备管理</a>
+            <a href="data-dashboard.html">数据看板</a>
+            <a href="firmware-upgrade.html">固件升级</a>
+            <a href="geo-fence.html">电子围栏</a>
+            <a href="alert-center.html">报警中心</a>
+            <a href="sim-management.html">SIM管理</a>
+            <a href="system-monitor.html">系统监控</a>
+            <a href="history-replay.html">历史回放</a>
+            <a href="log-audit.html">日志审计</a>
+            <a href="realtime-comms.html">实时通讯</a>
+            <a href="satellite-status.html">卫星状态</a>
+            <a href="user-management.html">用户管理</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="container">
+        <div class="full-width-panel">
+            <h3>设备清单</h3>
+            <div class="toolbar">
+                <button onclick="addDevice()">+ 添加设备</button>
+                <button onclick="batchUpdate()">批量配置</button>
+                <input type="text" placeholder="搜索设备IMEI...">
+            </div>
+            
+            <table class="device-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"></th>
+                        <th>设备名称</th>
+                        <th>IMEI</th>
+                        <th>最后上线</th>
+                        <th>信号强度</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="device-list">
+                    <!-- 动态加载设备数据 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="console.js"></script>
+</body>
+</html>

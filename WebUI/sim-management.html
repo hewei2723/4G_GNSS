@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SIM卡管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="sim-management.html">SIM管理</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="full-panel">
+            <h3>物联网卡管理</h3>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索ICCID/电话号码">
+                <button>查询</button>
+            </div>
+            <table class="sim-table">
+                <thead>
+                    <tr>
+                        <th>ICCID</th>
+                        <th>运营商</th>
+                        <th>套餐流量</th>
+                        <th>已用流量</th>
+                        <th>激活时间</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>89860121807000012345</td>
+                        <td>中国移动</td>
+                        <td>50MB/月</td>
+                        <td>32.1MB</td>
+                        <td>2023-12-01</td>
+                        <td class="status-active">正常</td>
+                    </tr>
+                    <tr>
+                        <td>89860121807000067890</td>
+                        <td>中国联通</td>
+                        <td>100MB/月</td>
+                        <td>89.5MB</td>
+                        <td>2024-02-15</td>
+                        <td class="status-warning">即将超量</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="sim-actions">
+                <button>刷新数据</button>
+                <button>更换SIM卡</button>
+            </div>
+        </div>
+    </div>
+    <script src="web.js"></script>
+</body>
+</html>

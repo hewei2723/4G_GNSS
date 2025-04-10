@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>报警中心</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <a href="alert-center.html">报警中心</a>
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="full-panel">
+            <div class="alert-config">
+                <h3>报警规则设置</h3>
+                <div class="rule-editor">
+                    <select class="condition-type">
+                        <option>位置偏移</option>
+                        <option>速度超限</option>
+                        <option>设备离线</option>
+                    </select>
+                    <input type="number" placeholder="阈值（米/秒）">
+                    <select class="notification-method">
+                        <option>短信通知</option>
+                        <option>平台弹窗</option>
+                        <option>邮件提醒</option>
+                    </select>
+                    <button class="save-rule">保存规则</button>
+                </div>
+            </div>
+            <div class="alert-history">
+                <h3>历史报警记录</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>设备ID</th>
+                            <th>报警类型</th>
+                            <th>处理状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2024-03-15 14:23</td>
+                            <td>GNSS-1001</td>
+                            <td>位置偏移 > 500m</td>
+                            <td class="status-unhandled">未处理</td>
+                        </tr>
+                        <tr>
+                            <td>2024-03-14 09:45</td>
+                            <td>GNSS-1002</td>
+                            <td>超速报警（80km/h）</td>
+                            <td class="status-resolved">已处理</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="web.js"></script>
+</body>
+</html>

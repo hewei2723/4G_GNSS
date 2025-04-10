@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>数据统计看板</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <!-- 保持与现有导航栏一致 -->
+            <a href="console.html">控制台</a>
+            <a href="data-dashboard.html">数据看板</a>
+            <!-- 其他导航链接 -->
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    <div class="container">
+        <div class="full-panel">
+            <h3>设备数据统计（最近7天）</h3>
+            <div id="chart-container" style="height:500px"></div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h4>在线设备</h4>
+                    <div class="stat-value">1,234</div>
+                </div>
+                <div class="stat-item">
+                    <h4>日均定位</h4>
+                    <div class="stat-value">98.7%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 模拟ECharts配置
+        var chart = echarts.init(document.getElementById('chart-container'));
+        chart.setOption({
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['定位次数', '报警事件'] },
+            xAxis: { type: 'category', data: ['周一','周二','周三','周四','周五','周六','周日'] },
+            yAxis: { type: 'value' },
+            series: [
+                { name: '定位次数', type: 'line', data: [120,132,101,134,90,230,210] },
+                { name: '报警事件', type: 'bar', data: [5,8,3,6,2,9,4] }
+            ]
+        });
+    </script>
+    <script src="web.js"></script>
+</body>
+</html>

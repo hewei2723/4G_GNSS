@@ -1,0 +1,518 @@
+#include <HardwareSerial.h>
+#include <ArduinoJson.h>
+// 基础配置
+#define BUFFER_SIZE 1024
+
+// MQTT配置
+#define CLIENT_ID "4G_GPS"              // 设备唯一标识
+
+// MQTT主题定义
+#define TOPIC_SUB_AT "AT_GPS"           // 订阅：接收AT指令
+#define TOPIC_PUB_GPS "4G"              // 发布：GPS位置数据
+#define TOPIC_PUB_RESULT "AT_GPS_result"// 发布：AT指令执行结果
+
+// 使用硬件串口2用于4G模块通信
+HardwareSerial SerialAT(2); // 使用UART2 (GPIO16, GPIO17)
+
+bool sendATCommand(const char* command, String* response = nullptr, int timeout = 1000) {
+  // 打印发送的AT指令
+  Serial.printf("发送AT指令: %s\n", command);
+  SerialAT.println(command);
+  
+  if (response != nullptr) {
+    response->clear();
+    unsigned long start = millis();
+    while (millis() - start < timeout) {
+      if (SerialAT.available()) {
+        char c = SerialAT.read();
+        *response += c;
+        Serial.write(c);  // 实时显示接收到的数据
+      }
+    }
+  } else {
+    delay(timeout);
+    while (SerialAT.available()) {
+      Serial.write(SerialAT.read());  // 直接输出调试信息
+    }
+  }
+  
+  return true;
+}
+
+void setup() {
+  // 初始化调试串口(USB)
+  Serial.begin(115200);
+  // 初始化4G模块串口 (RX2=16, TX2=17)
+  SerialAT.begin(115200, SERIAL_8N1, 16, 17);
+  
+  Serial.println("正在初始化模块...");
+  delay(10000);  // 等待模块启动
+
+  // 测试AT指令响应
+  int retryCount = 0;
+  const int maxRetries = 10;
+  bool moduleReady = false;
+
+  while (retryCount < maxRetries) {
+    Serial.printf("\n第 %d 次尝试连接模块...\n", retryCount + 1);
+    String response;
+    
+    Serial.println("发送AT指令...");
+    if (sendATCommand("AT", &response, 2000)) {
+      Serial.printf("接收到响应: %s\n", response.c_str());
+      if (response.indexOf("OK") != -1) {
+        moduleReady = true;
+        Serial.println("模块响应正常，初始化成功！");
+        break;
+      }
+    }
+    retryCount++;
+    delay(2000);
+  }
+
+  if (!moduleReady) {
+    Serial.println("模块未就绪，请检查连接");
+    while(1) delay(1000);  // 停止执行
+  }
+
+  // 初始化配置
+  initModem();
+}
+
+void initModem() {
+  for (int i = 0; i < 1; i++)//大力出奇迹，尝试三次。
+  {
+  Serial.println("发送AT指令，设置GPRS参数");
+  sendATCommand("AT+QICSGP=1,1,\"\",\"\",\"\"", nullptr, 1000);
+
+  Serial.println("打开GPRS连接");
+  sendATCommand("AT+NETOPEN", nullptr, 2000);
+
+  Serial.println("设置NTP服务器");
+  sendATCommand("AT+QNTP=1,\"tms.dynamicode.com.cn\",123,1", nullptr, 500);
+
+  Serial.println("设置MCONFIG参数");
+  sendATCommand("AT+MCONFIG=\"4G_GPS\",\"4G_GPS\",mqtt客户端密码", nullptr, 500);
+
+  Serial.println("设置MIPSTART参数");
+  sendATCommand("AT+MIPSTART=\"mqtt服务端地址\",1883", nullptr, 500);
+
+  Serial.println("连接MQTT服务器");
+  sendATCommand("AT+MCONNECT=1,60", nullptr, 1000);
+
+  Serial.println("订阅主题");
+  sendATCommand("AT+MSUB=\"" TOPIC_SUB_AT "\",0", nullptr, 1000);
+  
+  // 添加新的发布主题
+  Serial.println("添加结果反馈主题");
+  sendATCommand("AT+MPUB=\"" TOPIC_PUB_RESULT "\",0,0,\"初始化\"", nullptr, 1000);
+  
+
+  Serial.println("开启GPS");
+  sendATCommand("AT+MGPSC=1", nullptr, 1000);
+
+  Serial.println("设置热启动");
+  sendATCommand("AT+GPSMODE=1", nullptr, 1000);
+
+  Serial.println("发布消息：等待获取GPS信息");
+  sendATCommand("AT+MPUB=\"" TOPIC_PUB_GPS "\",0,0,\"等待获取GPS信息\"", nullptr, 1000);
+
+  
+  }
+  sendATCommand("AT+MPUB=\"" TOPIC_PUB_RESULT "\",0,0,\"初始化完成\"", nullptr, 1000);
+
+  Serial.println("开启NMEA消息");
+  sendATCommand("AT+MGPSGET=ALL,1", nullptr, 1000);
+
+}
+
+// 修改处理订阅消息的函数
+void handleATCommand(const char* atCommand) {
+  Serial.printf("开始执行AT命令: %s\n", atCommand);
+
+  String response;
+  if (sendATCommand(atCommand, &response, 3000)) {
+    Serial.printf("AT命令响应内容: %s\n", response.c_str());
+
+    // 创建JSON文档
+    StaticJsonDocument<BUFFER_SIZE> doc;
+    doc["status"] = response.indexOf("ERROR") == -1;
+
+    // 将响应拆分成行
+    String line;
+    int lineCount = 0;
+    int pos = 0;
+    while (pos < response.length()) {
+      int endPos = response.indexOf('\n', pos);
+      if (endPos == -1) {
+        line = response.substring(pos);
+        pos = response.length();
+      } else {
+        line = response.substring(pos, endPos);
+        pos = endPos + 1;
+      }
+      
+      // 清理行末的\r
+      if (line.endsWith("\r")) {
+        line = line.substring(0, line.length() - 1);
+      }
+      
+      // 跳过空行
+      if (line.length() > 0) {
+        String key = "line" + String(lineCount + 1);
+        doc[key] = line;
+        lineCount++;
+      }
+    }
+
+    // 生成JSON字符串
+    String jsonString;
+    serializeJson(doc, jsonString);
+
+    // 替换特殊字符（保留对双引号的转义）
+    jsonString.replace("\n", "");
+    jsonString.replace("\r", "");
+
+    // 构造和发送MQTT消息
+    char resultMsg[BUFFER_SIZE];
+    snprintf(resultMsg, BUFFER_SIZE, "AT+MPUB=\"%s\",0,0,\"%s\"", TOPIC_PUB_RESULT, jsonString.c_str());
+
+    Serial.println("发送MQTT结果消息...");
+    String pubResponse;
+    if (sendATCommand(resultMsg, &pubResponse, 2000)) {
+      if (pubResponse.indexOf("ERROR") == -1) {
+        Serial.println("MQTT结果发送成功！");
+      } else {
+        Serial.println("MQTT结果发送失败！");
+      }
+    } else {
+      Serial.println("MQTT结果发送失败！");
+    }
+  } else {
+    Serial.println("AT命令执行失败！");
+  }
+
+  Serial.println("------------------------");
+  delay(1000);
+}
+
+void extractGPSData(const char* response, char* gpsData) {
+  const char* start = strstr(response, "+GPSST:");
+  if (start) {
+    start += 7; // 跳过"+GPSST:"
+    const char* end = strstr(start, "\r\n");
+    if (end) {
+      int len = end - start;
+      strncpy(gpsData, start, len);
+      gpsData[len] = '\0';
+    } else {
+      strcpy(gpsData, start);
+    }
+  } else {
+    gpsData[0] = '\0';
+  }
+}
+
+void parseGPSToJSON(const char* gpsData, char* jsonOutput) {
+  int status, cn;
+  double longitude, altitude, latitude;
+  
+  sscanf(gpsData, "%d, %d, %lf, %lf, %lf", &status, &cn, &longitude, &altitude, &latitude);
+  
+  sprintf(jsonOutput, 
+          "{\"status\":%d,\"cn\":%d,\"wgs84\":{\"longitude\":%.6f,\"latitude\":%.6f,\"altitude\":%.6f}}",
+          status, cn, longitude, latitude, altitude);
+}
+
+// 解析NMEA中$GNGGA语句生成JSON
+void parseNMEAGGAToJSON(const char* nmea, char* jsonOutput) {
+  char nmeaCopy[BUFFER_SIZE];
+  strncpy(nmeaCopy, nmea, BUFFER_SIZE-1);
+  nmeaCopy[BUFFER_SIZE-1] = '\0';
+  char *token = strtok(nmeaCopy, ",");
+  if (!token || strcmp(token, "$GNGGA") != 0) {
+    strcpy(jsonOutput, "{\"status\":0}");
+    return;
+  }
+  // 字段顺序：$GNGGA,UTC,lat,NS,lon,EW,fix,cn,hdop,alt,altUnit,...
+  strtok(NULL, ","); // UTC 忽略
+  char *latStr = strtok(NULL, ",");    // 纬度 (格式：ddmm.mmmmmm)
+  char *ns = strtok(NULL, ",");          // N/S
+  char *lonStr = strtok(NULL, ",");      // 经度 (格式：dddmm.mmmmmm)
+  char *ew = strtok(NULL, ",");          // E/W
+  char *fixQuality = strtok(NULL, ",");  // 定位状态
+  char *cnStr = strtok(NULL, ",");       // 卫星数量
+  strtok(NULL, ","); // hdop 忽略
+  char *altStr = strtok(NULL, ",");      // 海拔
+  int fix = atoi(fixQuality);
+  int cn = atoi(cnStr);
+  double altitude = atof(altStr);
+  double latDegrees = 0, lonDegrees = 0;
+  if(latStr && strlen(latStr) >= 4) {
+    char degPart[3] = {0};
+    strncpy(degPart, latStr, 2);
+    double deg = atof(degPart);
+    double min = atof(latStr + 2);
+    latDegrees = deg + min/60.0;
+    if(ns && (ns[0]=='S' || ns[0]=='s'))
+      latDegrees = -latDegrees;
+  }
+  if(lonStr && strlen(lonStr) >= 5) {
+    char degPart[4] = {0};
+    strncpy(degPart, lonStr, 3);
+    double deg = atof(degPart);
+    double min = atof(lonStr + 3);
+    lonDegrees = deg + min/60.0;
+    if(ew && (ew[0]=='W' || ew[0]=='w'))
+      lonDegrees = -lonDegrees;
+  }
+  int status = (fix > 0) ? 1 : 0;
+  sprintf(jsonOutput,
+          "{\"status\":%d,\"cn\":1,\"wgs84\":{\"longitude\":%.6f,\"latitude\":%.6f,\"altitude\":%.2f}}",
+          status, lonDegrees, latDegrees, altitude);
+}
+
+// 新增函数：解析 NMEA $GNRMC 语句生成JSON
+void parseNMEARMCToJSON(const char* nmea, char* jsonOutput) {
+  char nmeaCopy[BUFFER_SIZE];
+  strncpy(nmeaCopy, nmea, BUFFER_SIZE - 1);
+  nmeaCopy[BUFFER_SIZE - 1] = '\0';
+  
+  // 使用 strtok 按逗号分割
+  char *token = strtok(nmeaCopy, ",");
+  if (!token || strcmp(token, "$GNRMC") != 0) {
+    strcpy(jsonOutput, "{\"status\":0}");
+    return;
+  }
+  // $GNRMC,UTC,time,status,lat,NS,lon,EW,...
+  strtok(NULL, ","); // UTC时间，忽略
+  char *statusStr = strtok(NULL, ","); // 状态 A=有效 V=无效
+  char *latStr = strtok(NULL, ",");      // 纬度 ddmm.mmmmmm
+  char *ns = strtok(NULL, ",");            // N/S
+  char *lonStr = strtok(NULL, ",");      // 经度 dddmm.mmmmmm
+  char *ew = strtok(NULL, ",");            // E/W
+  
+  int valid = (statusStr && statusStr[0] == 'A') ? 1 : 0;
+  double latDegrees = 0, lonDegrees = 0;
+  if(latStr && strlen(latStr) >= 4) {
+    char degPart[3] = {0};
+    strncpy(degPart, latStr, 2);
+    double deg = atof(degPart);
+    double min = atof(latStr + 2);
+    latDegrees = deg + min/60.0;
+    if(ns && (ns[0]=='S' || ns[0]=='s'))
+      latDegrees = -latDegrees;
+  }
+  if(lonStr && strlen(lonStr) >= 5) {
+    char degPart[4] = {0};
+    strncpy(degPart, lonStr, 3);
+    double deg = atof(degPart);
+    double min = atof(lonStr + 3);
+    lonDegrees = deg + min/60.0;
+    if(ew && (ew[0]=='W' || ew[0]=='w'))
+      lonDegrees = -lonDegrees;
+  }
+  
+  sprintf(jsonOutput,
+          "{\"status\":%d,\"cn\":1,\"wgs84\":{\"longitude\":%.6f,\"latitude\":%.6f,\"altitude\":0.00}}",
+          valid, lonDegrees, latDegrees);
+}
+
+// 解析AT指令JSON
+bool parseATCommandJSON(const char* jsonString, String& atCommand) {
+  Serial.println("开始解析JSON...");
+  Serial.printf("输入JSON字符串: '%s'\n", jsonString);
+
+  // 创建一个静态的 JSON 文档
+  StaticJsonDocument<BUFFER_SIZE> doc;
+  DeserializationError error = deserializeJson(doc, jsonString);
+
+  if (error) {
+    Serial.print(F("JSON解析失败: "));
+    Serial.println(error.f_str());
+    return false;
+  }
+
+  // 提取 client_id 和 at_cmd
+  const char* clientId = doc["client_id"];
+  const char* cmd = doc["at_cmd"];
+
+  if (!clientId || !cmd) {
+    Serial.println("未找到必要的JSON字段");
+    return false;
+  }
+
+  Serial.printf("提取的ID: '%s'\n", clientId);
+
+  if (String(clientId) != CLIENT_ID) {
+    Serial.printf("ID不匹配。收到:'%s' 期望:'%s'\n", clientId, CLIENT_ID);
+    return false;
+  }
+
+  atCommand = String(cmd);
+  Serial.printf("成功提取命令: '%s'\n", atCommand.c_str());
+  return true;
+}
+
+// 添加串口缓冲区，用于接收完整消息
+String serialBuffer = "";
+
+// 在全局变量区域添加
+bool isCollectingMessage = false;
+String fullMessage = "";
+
+// 添加一个新的辅助函数用于清理JSON字符串
+String cleanJsonString(const String& input) {
+  // 使用 ArduinoJson 库不需要清理 JSON 字符串
+  return input;
+}
+
+// 添加全局变量用于存储上一次的坐标
+struct LastCoordinates {
+    double longitude;
+    double latitude;
+    double altitude;
+    bool isValid;
+} lastCoords = {0, 0, 0, false};
+
+// 修改阈值为更小的值，以保持原有精度
+bool hasLocationChanged(double newLon, double newLat, double newAlt) {
+    if (!lastCoords.isValid) {
+        return true;
+    }
+    // 使用更小的阈值，确保不影响原有精度
+    const double threshold = 0.0000001;  // 精确到0.0000001度
+    return fabs(newLon - lastCoords.longitude) > threshold ||
+           fabs(newLat - lastCoords.latitude) > threshold ||
+           fabs(newAlt - lastCoords.altitude) > threshold;
+}
+
+// 修改 processMQTTMessage 函数
+unsigned long lastNMEAOpen = 0;
+unsigned long lastNMEAProcessTime = 0;
+
+void processMQTTMessage(const String& message) {
+    static String jsonBuffer = "";
+    Serial.printf("处理新消息: %s\n", message.c_str());
+    
+    // 检查是否为订阅AT指令消息
+    if (message.indexOf("+MSUB: \"" TOPIC_SUB_AT "\"") != -1) {
+        Serial.println("检测到新的AT指令消息");
+        jsonBuffer = "";
+        int startPos = message.indexOf("{");
+        if (startPos != -1) {
+            jsonBuffer = message.substring(startPos);
+            Serial.printf("提取的JSON开始部分: %s\n", jsonBuffer.c_str());
+        }
+        return;
+    }
+    
+    // 若收到的消息以 "$GNRMC" 或 "$GNGGA" 开头，处理GPS数据
+    if ((message.startsWith("$GNRMC") || message.startsWith("$GNGGA"))
+        && (millis() - lastNMEAProcessTime >= 2000)) {
+        char jsonData[BUFFER_SIZE] = {0};
+        
+        // 先进行正常的解析，保持原有精度
+        if (message.startsWith("$GNRMC")) {
+            parseNMEARMCToJSON(message.c_str(), jsonData);
+        } else {
+            parseNMEAGGAToJSON(message.c_str(), jsonData);
+        }
+
+        // 解析JSON以获取坐标
+        StaticJsonDocument<BUFFER_SIZE> doc;
+        deserializeJson(doc, jsonData);
+        
+        if (doc["status"] == 1) {
+            double newLon = doc["wgs84"]["longitude"];
+            double newLat = doc["wgs84"]["latitude"];
+            double newAlt = doc["wgs84"]["altitude"];
+
+            // 检查位置是否变化
+            if (hasLocationChanged(newLon, newLat, newAlt)) {
+                Serial.println("位置发生变化，发送新数据");
+                char mqttMessage[BUFFER_SIZE];
+                snprintf(mqttMessage, BUFFER_SIZE, "AT+MPUB=\"" TOPIC_PUB_GPS "\",0,0,\"%s\"", jsonData);
+                sendATCommand(mqttMessage, nullptr, 1000);
+                
+                // 更新上一次的坐标
+                lastCoords.longitude = newLon;
+                lastCoords.latitude = newLat;
+                lastCoords.altitude = newAlt;
+                lastCoords.isValid = true;
+            } else {
+                Serial.println("位置未改变，跳过发送");
+            }
+        }
+        
+        lastNMEAProcessTime = millis();
+        return;
+    }
+    
+    // 原有的续传JSON逻辑保持不变
+    if (jsonBuffer.length() > 0) {
+        jsonBuffer += message;
+        Serial.printf("当前JSON缓冲区: %s\n", jsonBuffer.c_str());
+        if (jsonBuffer.indexOf("}") != -1) {
+            int startPos = jsonBuffer.indexOf("{");
+            int endPos = jsonBuffer.indexOf("}");
+            if (startPos != -1 && endPos != -1) {
+                String jsonStr = jsonBuffer.substring(startPos, endPos + 1);
+                String cleanJson = jsonStr;
+                Serial.println("JSON消息接收完整！");
+                Serial.printf("解析JSON: %s\n", cleanJson.c_str());
+                String atCommand;
+                if (parseATCommandJSON(cleanJson.c_str(), atCommand)) {
+                    Serial.printf("成功解析AT命令: %s\n", atCommand.c_str());
+                    handleATCommand(atCommand.c_str());
+                      Serial.println("JSON解析失败或设备ID不匹配");
+                  } else {
+            }
+            }
+            jsonBuffer = "";
+        }
+    }
+}
+
+// 完全重写 loop 函数
+void loop() {
+    static unsigned long lastNMEACycle = 0;
+    static bool nmeaActive = false;
+    const unsigned long CYCLE_TOTAL = 8000;    // 8秒完整周期
+    const unsigned long NMEA_ACTIVE = 3000;    // NMEA激活时间3秒
+    
+    unsigned long currentTime = millis();
+    unsigned long cycleTime = currentTime - lastNMEACycle;
+
+    // 管理NMEA周期
+    if (cycleTime >= CYCLE_TOTAL) {
+        // 开始新周期
+        lastNMEACycle = currentTime;
+        nmeaActive = true;
+        Serial.println("开始新周期，打开NMEA");
+        sendATCommand("AT+MGPSGET=ALL,1", nullptr, 1000);
+    } else if (cycleTime >= NMEA_ACTIVE && nmeaActive) {
+        // 关闭NMEA，进入等待期
+        nmeaActive = false;
+        Serial.println("NMEA周期结束，关闭NMEA");
+        sendATCommand("AT+MGPSGET=ALL,0", nullptr, 1000);
+    }
+
+    // 处理串口数据
+    while (SerialAT.available()) {
+        char c = SerialAT.read();
+        if (c == '\n' || c == '\r') {
+            if (serialBuffer.length() > 0) {
+                processMQTTMessage(serialBuffer);
+                serialBuffer = "";
+            }
+        } else {
+            serialBuffer += c;
+        }
+    }
+    
+    if (serialBuffer.length() > 0) {
+        processMQTTMessage(serialBuffer);
+        serialBuffer = "";
+    }
+}

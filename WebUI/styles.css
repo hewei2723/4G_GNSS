@@ -1,0 +1,220 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: right;
+}
+
+.container {
+    display: flex;
+    flex: 1;
+    height: 100vh;
+}
+
+/* 新增横向排列样式 */
+.dashboard-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 10px;
+}
+
+.dashboard-item {
+    flex: 1 1 300px;
+    min-height: 200px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.left-panel {
+    flex: 4;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.right-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 5px;
+    padding: 15px;
+    height: auto;
+    min-height: 120px;
+}
+
+.panel1 {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 5px;
+    padding: 8px;
+    height: auto;
+    min-height: 60px;
+}
+
+
+#map {
+    flex: 1;
+    height: calc(100vh - 200px);
+    border-radius: 4px;
+}
+
+.command-panel {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.command-panel input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+}
+
+.command-panel input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.command-panel button {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.command-panel button:hover {
+    opacity: 0.9;
+}
+
+#command-result {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    overflow-y: auto;
+}
+
+.panel h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 自动填充 */
+    gap: 10px;
+    margin-bottom: 1px;
+    white-space: nowrap; /* 防止内容换行 */
+}
+
+.info-grid div {
+    padding: 1px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 8px; /* 调小字体大小 */
+}
+
+
+.quick-commands {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    margin-bottom: 1px;
+}
+
+.quick-commands button {
+    padding: 8px;
+    background: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+
+/* 导航栏样式 */
+.navbar {
+  background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-nav {
+    display: flex;
+    gap: 15px;
+    border: 2px solid #4a90e2;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f0f6ff;
+}
+
+.main-nav a {
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.main-nav a:hover {
+    background: #4a90e2;
+    color: white;
+    border-color: #357abd;
+}
+
+.main-nav a:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.main-nav a[href="console.html"] {
+    font-weight: bold;
+    background: #e8f4ff;
+}
+.monitor-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.status-cards {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+}
+
+.status-card {
+    flex: 1;
+    text-align: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+}

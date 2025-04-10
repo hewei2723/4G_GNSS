@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.10.4",
+    "mysql2": "^3.13.0",
+    "ws": "^8.18.1",
+    "node-fetch": "^2.6.11"
+  },
+  "scripts": {
+    "start": "node app.js"
+  }
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>用户管理</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">
+        <nav class="main-nav">
+            <a href="console.html">控制台</a>
+            <!-- 其他导航链接保持与现有页面一致 -->
+        </nav>
+        <button onclick="logout()">退出登录</button>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h3>用户列表</h3>
+            <div class="info-grid">
+                <div>管理员</div>
+                <div>admin@example.com</div>
+                <div><button class="edit-btn">编辑</button></div>
+                <div>操作员</div>
+                <div>operator@example.com</div>
+                <div><button class="edit-btn">编辑</button></div>
+            </div>
+            <div class="command-panel">
+                <button onclick="createUser()">新建用户</button>
+                <button onclick="exportUsers()">导出列表</button>
+            </div>
+        </div>
+    </div>
+    <script src="web.js"></script>
+</body>
+</html>
